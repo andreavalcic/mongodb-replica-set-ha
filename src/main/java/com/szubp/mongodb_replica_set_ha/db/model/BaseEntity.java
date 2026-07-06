@@ -1,25 +1,12 @@
 package com.szubp.mongodb_replica_set_ha.db.model;
 
-import jakarta.persistence.Access;
-import jakarta.persistence.AccessType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;;
-
-@MappedSuperclass
-@Access(AccessType.PROPERTY)
+/**
+ * @deprecated Replaced by {@link BaseDocument} after migration to MongoDB.
+ * Retained as a compile stub to avoid breaking any residual references.
+ */
+@Deprecated
 public abstract class BaseEntity {
-
-	private String m_id;
-
-	@Id
-	@UidGenerated
-	@Column(length = 23, nullable = false, updatable = false)
-	public String getId() {
-		return m_id;
-	}
-
-	public void setId(String id) {
-		this.m_id = id;
-	}
+    private String id;
+    public String getId()        { return id; }
+    public void setId(String id) { this.id = id; }
 }

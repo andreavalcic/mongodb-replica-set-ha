@@ -1,42 +1,34 @@
 package com.szubp.mongodb_replica_set_ha.db.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.io.Serializable;
 
-@Entity
-@Table(name = "auth_user")
-@Access(AccessType.PROPERTY)
-public class AuthUser extends BaseEntity implements Serializable {
+/**
+ * Standalone MongoDB document - other aggregates reference it via @DBRef.
+ * Collection name mirrors the original PostgreSQL table for consistency.
+ */
+@Document(collection = "auth_users")
+public class AuthUser extends BaseDocument implements Serializable {
 
-	private String m_email;
-	private String m_fullname;
-	private String m_kvknumber;
+    @Field("email")
+    @Indexed(unique = true)   // replaces @Column(unique = true)
+    private String email;
 
-	@Column(name = "email", nullable = false, unique = true, length = 255)
-	public String getEmail() {
-		return m_email;
-	}
+    @Field("fullname")
+    private String fullname;
 
-	public void setEmail(String email) {
-		this.m_email = email;
-	}
+    @Field("kvknumber")
+    private String kvknumber;
 
-	@Column(name = "fullname", nullable = false, length = 255)
-	public String getFullname() {
-		return m_fullname;
-	}
+    public String getEmail()           { return email; }
+    public void setEmail(String v)     { email = v; }
 
-	public void setFullname(String fullname) {
-		this.m_fullname = fullname;
-	}
+    public String getFullname()        { return fullname; }
+    public void setFullname(String v)  { fullname = v; }
 
-	@Column(name = "kvknumber", nullable = false, length = 8)
-	public String getKvknumber() {
-		return m_kvknumber;
-	}
-
-	public void setKvknumber(String kvknumber) {
-		this.m_kvknumber = kvknumber;
-	}
+    public String getKvknumber()       { return kvknumber; }
+    public void setKvknumber(String v) { kvknumber = v; }
 }

@@ -13,11 +13,11 @@ enum class SuiteDeliveryStatus(val digiPortCodes: List<String>? = null) {
 		}
 
 		fun allSuccess(deliveries: List<XbrlSuiteDelivery>): Boolean {
-			return deliveries.all { it.statuses.any { status -> status.code contains COMPLETED.digiPortCodes!! } }
+			return deliveries.all { it.statuses.any { status -> status.code in COMPLETED.digiPortCodes!! } }
 		}
 
 		fun allRejected(deliveries: List<XbrlSuiteDelivery>): Boolean {
-			return deliveries.all { it.statuses.any { status -> status.code contains REJECTED.digiPortCodes!! } }
+			return deliveries.all { it.statuses.any { status -> status.code in REJECTED.digiPortCodes!! } }
 		}
 	}
 }

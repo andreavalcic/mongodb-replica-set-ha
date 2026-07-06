@@ -1,161 +1,75 @@
 package com.szubp.mongodb_replica_set_ha.db.model;
 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.lang.NonNull;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Entity
-@Table(name = "xbr_report_suite_delivery")
-public class XbrlSuiteDelivery extends BaseEntity {
+/**
+ * Embedded subdocument - lives inside XbrlReportSuite.deliveryList list.
+ * No @Document annotation: stored as a nested BSON array element.
+ *
+ * Key migration changes:
+ *   - @ManyToOne xbrlSuite removed  (embedding implies parent ownership)
+ *   - @OneToMany statuses replaced by plain List<XbrlSuiteDeliveryStatus>
+ *   - @Fetch(FetchMode.SUBSELECT) removed  (Hibernate-specific, irrelevant for MongoDB)
+ */
+public class XbrlSuiteDelivery extends BaseDocument {
 
-	private XbrlReportSuite m_xbrlSuite;
+    @Field("sendertype")   private String sendertype;
+    @Field("sendernum")    private String sendernum;
+    @Field("receivertype") private String receivertype;
+    @Field("receivernum")  private String receivernum;
+    @Field("receiverdesc") private String receiverdesc;
+    @Field("messagetype")  private String messagetype;
+    @Field("messageid")    private String messageid;
+    @Field("sent_time")    private Date   sentTimestamp;
+    @Field("active")       private boolean active;
 
-	private String m_sendertype;
+    /**
+     * Replaces @OneToMany(mappedBy=…) from JPA.
+     * Spring Data MongoDB stores this list as an embedded BSON array
+     * inside the parent XbrlSuiteDelivery sub-document.
+     */
+    @Field("statuses")
+    @NonNull
+    private List<XbrlSuiteDeliveryStatus> statuses = new ArrayList<>();
 
-	private String m_sendernum;
+    public String  getSendertype()                { return sendertype; }
+    public void    setSendertype(String v)         { sendertype = v; }
 
-	private String m_receivertype;
+    public String  getSendernum()                 { return sendernum; }
+    public void    setSendernum(String v)          { sendernum = v; }
 
-	private String m_receivernum;
+    public String  getReceivertype()              { return receivertype; }
+    public void    setReceivertype(String v)       { receivertype = v; }
 
-	private String m_receiverdesc;
+    public String  getReceivernum()               { return receivernum; }
+    public void    setReceivernum(String v)        { receivernum = v; }
 
-	private String m_messagetype;
+    public String  getReceiverdesc()              { return receiverdesc; }
+    public void    setReceiverdesc(String v)       { receiverdesc = v; }
 
-	private String m_messageid;
+    public String  getMessagetype()               { return messagetype; }
+    public void    setMessagetype(String v)        { messagetype = v; }
 
-	private Date m_sentTimestamp;
+    public String  getMessageid()                 { return messageid; }
+    public void    setMessageid(String v)          { messageid = v; }
 
-	private boolean m_active;
+    public Date    getSentTimestamp()             { return sentTimestamp; }
+    public void    setSentTimestamp(Date v)        { sentTimestamp = v; }
 
-	@NonNull
-	private List<XbrlSuiteDeliveryStatus> m_statusList = new ArrayList<>();
+    public boolean isActive()                     { return active; }
+    public void    setActive(boolean v)            { active = v; }
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "xbrlsuiteid")
-	public XbrlReportSuite getXbrlSuite() {
-		return m_xbrlSuite;
-	}
+    @NonNull
+    public List<XbrlSuiteDeliveryStatus> getStatuses()               { return statuses; }
+    public void setStatuses(@NonNull List<XbrlSuiteDeliveryStatus> v) { statuses = v; }
 
-	public void setXbrlSuite(XbrlReportSuite value) {
-		m_xbrlSuite = value;
-	}
+    @Override
+    public String toString() { return getAuditIdentity(); }
 
-	@Column(name = "sendertype", length = 35, nullable = false)
-	public String getSendertype() {
-		return m_sendertype;
-	}
-
-	public void setSendertype(String value) {
-		m_sendertype = value;
-	}
-
-	@Column(name = "sendernum", length = 20, nullable = false)
-	public String getSendernum() {
-		return m_sendernum;
-	}
-
-	public void setSendernum(String value) {
-		m_sendernum = value;
-	}
-
-	@Column(name = "receivertype", length = 35, nullable = false)
-	public String getReceivertype() {
-		return m_receivertype;
-	}
-
-	public void setReceivertype(String value) {
-		m_receivertype = value;
-	}
-
-	@Column(name = "receivernum", length = 20, nullable = false)
-	public String getReceivernum() {
-		return m_receivernum;
-	}
-
-	public void setReceivernum(String value) {
-		m_receivernum = value;
-	}
-
-	@Column(name = "receiverdesc", length = 256, nullable = false)
-	public String getReceiverdesc() {
-		return m_receiverdesc;
-	}
-
-	public void setReceiverdesc(String value) {
-		m_receiverdesc = value;
-	}
-
-	@Column(name = "messagetype", length = 64, nullable = false)
-	public String getMessagetype() {
-		return m_messagetype;
-	}
-
-	public void setMessagetype(String value) {
-		m_messagetype = value;
-	}
-
-	@Column(name = "messageid", length = 40, nullable = false)
-	public String getMessageid() {
-		return m_messageid;
-	}
-
-	public void setMessageid(String value) {
-		m_messageid = value;
-	}
-
-	@Column(name = "sent_time", nullable = true)
-	@Temporal(TemporalType.TIMESTAMP)
-	public Date getSentTimestamp() {
-		return m_sentTimestamp;
-	}
-
-	public void setSentTimestamp(Date value) {
-		m_sentTimestamp = value;
-	}
-
-	@Column(name = "active", nullable = false)
-	public boolean isActive() {
-		return m_active;
-	}
-
-	public void setActive(boolean value) {
-		m_active = value;
-	}
-
-	@NonNull
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = XbrlSuiteDeliveryStatus.pXBRL_SUITE_DELIVERY)
-	@Fetch(FetchMode.SUBSELECT)
-	public List<XbrlSuiteDeliveryStatus> getStatuses() {
-		return m_statusList;
-	}
-
-	public void setStatuses(@NonNull List<XbrlSuiteDeliveryStatus> value) {
-		m_statusList = value;
-	}
-
-	@Override
-	public String toString() {
-		return getAuditIdentity();
-	}
-
-	@NonNull
-	@Transient
-	public String getAuditIdentity() {
-		return getMessageid();
-	}
+    public String getAuditIdentity() { return getMessageid(); }
 }

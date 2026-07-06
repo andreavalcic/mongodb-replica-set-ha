@@ -1,134 +1,63 @@
 package com.szubp.mongodb_replica_set_ha.db.model;
 
-import jakarta.persistence.Access;
-import jakarta.persistence.AccessType;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-import jakarta.persistence.UniqueConstraint;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Field;
+
 import java.util.Date;
 
-@Entity
-@Table(name = "dvi_attachment", uniqueConstraints = {
-	@UniqueConstraint(columnNames = {"suiteid", "type"})
-})
-@Access(AccessType.PROPERTY)
-public class XbrlAttachment extends BaseEntity {
+/**
+ * Embedded subdocument - lives inside XbrlReportSuite.attachments list.
+ * No @Document annotation: stored inline in the parent suite document.
+ *
+ * Key migration changes:
+ *   - @ManyToOne suite (back-ref) removed  (embedding implies ownership)
+ *   - @ManyToOne createdBy → @DBRef        (cross-collection reference preserved)
+ *   - @Lob removed                          (MongoDB stores byte[] as BinData natively)
+ *   - @Temporal, @Column, @Enumerated removed (MongoDB handles dates/enums/blobs natively)
+ */
+public class XbrlAttachment extends BaseDocument {
 
-	private String m_name;
-	private XbrlAttachmentType m_type;
-	private String m_mimeType;
-	private String m_sha1;
-	private String m_xbrlCsvSha256;
-	private byte[] m_file;
-	private Long m_size;
-	private XbrlReportSuite m_suite;
-	private Date m_createdAt;
-	private AuthUser m_createdBy;
+    @Field("name")            private String            name;
+    @Field("type")            private XbrlAttachmentType type;
+    @Field("mimetype")        private String            mimeType;
+    @Field("sha1")            private String            sha1;
+    @Field("xbrl_csv_sha256") private String            xbrlCsvSha256;
+    @Field("file")            private byte[]            file;
+    @Field("size")            private Long              size;
+    @Field("created_at")      private Date              createdAt;
 
-	@Column(name = "name", nullable = false, length = 255)
-	public String getName() {
-		return m_name;
-	}
+    /**
+     * @DBRef stores a { $ref, $id } pointer to the auth_users collection.
+     * The MongoDB Java driver resolves this lazily, mirroring FetchType.LAZY.
+     */
+    @DBRef
+    @Field("created_by")
+    private AuthUser createdBy;
 
-	public void setName(String name) {
-		this.m_name = name;
-	}
+    public String             getName()             { return name; }
+    public void               setName(String v)     { name = v; }
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "type", nullable = false, length = 32)
-	public XbrlAttachmentType getType() {
-		return m_type;
-	}
+    public XbrlAttachmentType getType()             { return type; }
+    public void               setType(XbrlAttachmentType v) { type = v; }
 
-	public void setType(XbrlAttachmentType type) {
-		this.m_type = type;
-	}
+    public String             getMimeType()         { return mimeType; }
+    public void               setMimeType(String v) { mimeType = v; }
 
-	@Column(name = "mimetype", length = 32, nullable = false)
-	public String getMimeType() {
-		return m_mimeType;
-	}
+    public String             getSha1()             { return sha1; }
+    public void               setSha1(String v)     { sha1 = v; }
 
-	public void setMimeType(String mimeType) {
-		m_mimeType = mimeType;
-	}
+    public String             getXbrlCsvSha256()    { return xbrlCsvSha256; }
+    public void               setXbrlCsvSha256(String v) { xbrlCsvSha256 = v; }
 
-	@Column(name = "sha1", length = 40, nullable = false)
-	public String getSha1() {
-		return m_sha1;
-	}
+    public byte[]             getFile()             { return file; }
+    public void               setFile(byte[] v)     { file = v; }
 
-	public void setSha1(String value) {
-		m_sha1 = value;
-	}
+    public Long               getSize()             { return size; }
+    public void               setSize(Long v)       { size = v; }
 
-	@Column(name = "xbrl_csv_sha256", length = 64)
-	public String getXbrlCsvSha256() {
-		return m_xbrlCsvSha256;
-	}
+    public Date               getCreatedAt()        { return createdAt; }
+    public void               setCreatedAt(Date v)  { createdAt = v; }
 
-	public void setXbrlCsvSha256(String value) {
-		m_xbrlCsvSha256 = value;
-	}
-
-	@Lob
-	@Column(name = "file", nullable = false)
-	public byte[] getFile() {
-		return m_file;
-	}
-
-	public void setFile(byte[] file) {
-		this.m_file = file;
-	}
-
-	@Column(name = "size", nullable = false)
-	public Long getSize() {
-		return m_size;
-	}
-
-	public void setSize(Long size) {
-		this.m_size = size;
-	}
-
-	@ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.PERSIST)
-	@JoinColumn(name = "suiteid", nullable = false, referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_attachment_suite"))
-	public XbrlReportSuite getSuite() {
-		return m_suite;
-	}
-
-	public void setSuite(XbrlReportSuite suite) {
-		this.m_suite = suite;
-	}
-
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "created_at")
-	public Date getCreatedAt() {
-		return m_createdAt;
-	}
-
-	public void setCreatedAt(Date createdAt) {
-		this.m_createdAt = createdAt;
-	}
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "created_by", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_attachment_created_by"))
-	public AuthUser getCreatedBy() {
-		return m_createdBy;
-	}
-
-	public void setCreatedBy(AuthUser createdBy) {
-		this.m_createdBy = createdBy;
-	}
+    public AuthUser           getCreatedBy()        { return createdBy; }
+    public void               setCreatedBy(AuthUser v) { createdBy = v; }
 }
-
